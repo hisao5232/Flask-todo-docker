@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+*.sqlite3
+
+# Flask instance folder (もしあれば)
+instance/
+
+# Docker
+*.log
+*.pid
+*.sock
+docker-compose.override.yml
+*.env.local
+
+# Docker volumes / build cache
+**/volumes/
+**/tmp/
+**/cache/
+**/build/
+**/dist/
+
+# VSCode
+.vscode/
+
+# Mac / Linux system files
+.DS_Store
+*.swp

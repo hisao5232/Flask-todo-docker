@@ -1,0 +1,39 @@
+services:
+  flask_web:
+    build: .
+    container_name: flask_web
+    expose:
+      - "5000"
+    environment:
+      VIRTUAL_HOST: todo-flask.go-pro-world.net
+      LETSENCRYPT_HOST: todo-flask.go-pro-world.net
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      DB_HOST: db
+    depends_on:
+      - db
+    networks:
+      - proxy-tier
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - proxy-tier
+
+volumes:
+  db_data:
+
+networks:
+  proxy-tier:
+    external: true
