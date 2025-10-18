@@ -1,39 +1,30 @@
 services:
-  flask_web:
+  web:
     build: .
-    container_name: flask_web
-    expose:
-      - "5000"
-    environment:
-      VIRTUAL_HOST: todo-flask.go-pro-world.net
-      LETSENCRYPT_HOST: todo-flask.go-pro-world.net
-      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      DB_HOST: db
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
     depends_on:
-      - db
-    networks:
-      - proxy-tier
+      db:
+        condition: service_healthy
 
   db:
-    image: mysql:8.0
-    container_name: mysql_db
-    restart: always
+    image: mysql:8.1
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"
     volumes:
-      - db_data:/var/lib/mysql
-    networks:
-      - proxy-tier
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  db_data:
-
-networks:
-  proxy-tier:
-    external: true
+  mysql_data:

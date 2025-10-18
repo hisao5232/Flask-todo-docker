@@ -1,4 +1,4 @@
-flask
-flask_sqlalchemy
+Flask
 pymysql
+python-dotenv
 cryptography
