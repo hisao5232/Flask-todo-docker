@@ -29,3 +29,4 @@ docker-compose.override.yml
 # Mac / Linux system files
 .DS_Store
 *.swp
+progress.md

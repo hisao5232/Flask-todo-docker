@@ -8,10 +8,16 @@
         input[type="text"] { width: 300px; padding: 5px; }
         button { padding: 5px 10px; margin-left: 5px; }
         li.done { text-decoration: line-through; color: gray; }
+        .header { display: flex; align-items: center; justify-content: space-between; }
     </style>
 </head>
 <body>
-    <h1>Todo List</h1>
+    <div class="header">
+        <h1>Todo List</h1>
+        <form action="/logout" method="get">
+            <button type="submit">ログアウト</button>
+        </form>
+    </div>
 
     <form id="todo-form">
         <input type="text" id="task" placeholder="タスクを入力" required>

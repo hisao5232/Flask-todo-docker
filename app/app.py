@@ -1,7 +1,9 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 import os, pymysql, time
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "supersecret")  # セッション用
 
 db_host = os.getenv("DB_HOST", "localhost")
 db_user = os.getenv("MYSQL_USER")
@@ -24,11 +26,20 @@ def init_db(retries=5, delay=3):
         try:
             conn = get_conn()
             with conn.cursor() as cursor:
+                # Todoテーブル
                 cursor.execute("""
                 CREATE TABLE IF NOT EXISTS todos (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     task VARCHAR(255) NOT NULL,
                     done BOOLEAN DEFAULT FALSE
+                )
+                """)
+                # ユーザーテーブル
+                cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(50) UNIQUE NOT NULL,
+                    password VARCHAR(255) NOT NULL
                 )
                 """)
             conn.commit()
@@ -39,6 +50,7 @@ def init_db(retries=5, delay=3):
             print(f"DB not ready, retrying in {delay}s... ({i+1}/{retries})")
             time.sleep(delay)
     print("DB Init failed after retries")
+
 
 init_db()
 
@@ -102,7 +114,53 @@ def delete_todo(todo_id):
 # ---------- HTML表示 ----------
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    return render_template("index.html", username=session.get("username"))
+
+# ---------- 認証 ----------
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        try:
+            conn = get_conn()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM users WHERE username=%s", (username,))
+                user = cursor.fetchone()
+            conn.close()
+            if user and check_password_hash(user["password"], password):
+                session["user_id"] = user["id"]
+                session["username"] = user["username"]
+                return redirect(url_for("index"))
+            else:
+                return render_template("login.html", error="Invalid credentials")
+        except Exception as e:
+            return str(e)
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        hashed_pw = generate_password_hash(password)
+        try:
+            conn = get_conn()
+            with conn.cursor() as cursor:
+                cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_pw))
+            conn.commit()
+            conn.close()
+            return redirect(url_for("login"))
+        except pymysql.err.IntegrityError:
+            return render_template("register.html", error="Username already exists")
+    return render_template("register.html")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
