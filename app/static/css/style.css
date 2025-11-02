@@ -1,0 +1,41 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+.container {
+    max-width: 700px;
+    margin-top: 40px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.todo-item {
+    border-bottom: 1px solid #dee2e6;
+    padding: 10px 0;
+}
+
+.todo-item.done strong {
+    text-decoration: line-through;
+    color: gray;
+}
+
+.todo-item small {
+    color: #6c757d;
+}
+
+form button {
+    margin-top: 5px;
+}
+
+.edit-input {
+    margin-bottom: 10px;
+}
+
+textarea {
+    resize: none;
+}
